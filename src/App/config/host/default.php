@@ -5,7 +5,7 @@ return [
     'connect'   => [
         'mysql'     => [
             'dsn'       => 'mysql:dbname=test;host=mysql',
-            'username'  => 'kaadb',
+            'username'  => 'test',
             'password'  => '123456',
         ],
         'sqlite'    => [
