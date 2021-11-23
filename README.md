@@ -18,3 +18,7 @@
 ## Проверить работу системы
 1.  Перейти по адресу http://localhost
 2.  Попробовать залогиниться (kaa@yandex.ru/123456), разлогиниться
+## Где и что посмотреть
+1.  В папке: *src/App/classes/Controller* лежат три класса: **`Base, Home, UserForm`**
+2.  В данном примере используется класс **`User`** *(src/Modules/User/classes)*, который, в свою очередь использует класс **`Session`** *(src/Core/classes)*
+3.  Если возникнут трудности с подключением к БД, можно в файле *src/App/config/host/default.php* заменить username на **`root`** и password на **`secret`**  в строчках 8 и 9
