@@ -1,0 +1,38 @@
+Options -Indexes -MultiViews
+Options +FollowSymLinks
+<Files .*>
+        Order Deny,Allow
+        Deny From All
+</Files>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+#    RewriteBase /wn
+
+    # RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+    # RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+    # RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+    # RewriteCond %{THE_REQUEST} ^GET\ .*/index\.php\ HTTP
+
+    
+    
+    
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    RewriteRule .* index.php/$0 [PT,QSA]
+    RewriteRule ^(.*)index\.php$ $1 [R=301,L]
+    # RewriteRule ^(.*)$ /index.php?/$1 [L]
+
+    # RewriteRule ^index\.php$ / [R=301,L]
+    # RewriteRule ^(.*)/index\.php$ /$1/ [R=301,L]
+
+    # RewriteRule ^(src/|deny\.php) - [F,L,NC]
+
+    RewriteRule ^(?:src|vendor)\b.* index.php/$0 [L]
+
+</IfModule>
+AddDefaultCharset UTF-8
+
+# php_value upload_max_filesize 2M
+# php_value post_max_size 3M
+# php_value max_file_uploads 3

@@ -1,0 +1,19 @@
+<svg width="150" height="50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 50" preserveAspectRatio="none">
+    <defs>
+        <style type="text/css">
+            <!-- #holder_175bbaf45f5 text { fill:rgba(255,255,255,.75);font-weight:normal;font-family:Helvetica, monospace;font-size:20pt } -->
+            text { fill:rgba(0,0,0,0.25);font-weight:bold;font-family:Helvetica, monospace;font-size:14px;font-size:3vmin;text-shadow: rgba(255,255,255,0.5) 0px 3px 3px; }
+        </style>
+    </defs>
+    <g>
+        <rect width="150" height="50" fill="none">
+        </rect>
+        <g>
+            <!-- <text x="74.421875" y="104.5"> -->
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
+                <!-- 200x200 -->
+                watermark
+            </text>
+        </g>
+    </g>
+</svg>
