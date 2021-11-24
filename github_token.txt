@@ -1,0 +1,1 @@
+vscode://vscode.github-authentication/did-authenticate?windowid=1&code=705adca945e22f9d6d6a&state=aa955da0-0b95-4903-b023-ecb6c367a332
