@@ -1,6 +1,6 @@
 <?php
 
-use WN\Core\{Route};
+use WN\Core\Route;
 
 Route::set('media', 'media(/<file>)')
     ->filter(array('file' => '.+'))
@@ -10,13 +10,6 @@ Route::set('media', 'media(/<file>)')
     ))
     ->top();
 
-Route::set('default', '(<controller>(/<action>(/<param1>(/<param2>))))(?<query>)')
-    ->defaults([
-        'controller' => 'WN\App\Controller\Index',
-    ])
-    ->filter(function($params){
-        if(class_exists($params['controller'])) return true;
-        else return false;
-    });   
+Route::set('default_aka_codeigniter', '(<controller>(/<action>(/<any>)))(?<query>)');
 
 require_once 'lib.php';

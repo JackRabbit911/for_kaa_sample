@@ -103,7 +103,7 @@ class Response
         }
         else 
         {
-            $this->body = $body;
+            $this->body .= $body;
             return $this->body;
         }
     }

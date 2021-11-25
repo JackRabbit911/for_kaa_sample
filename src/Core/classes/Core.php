@@ -128,19 +128,28 @@ class Core
         define('DEVELOPMENT', 40);
         define('BASEDIR', str_replace(static::$index_file, '', $_SERVER['SCRIPT_NAME']));
         
-        ini_set('url_rewriter.tags', "a=href,area=href,frame=src,form=,fieldset=");
+        // ini_set('url_rewriter.tags', "a=href,area=href,frame=src,form=,fieldset=");
 
         register_shutdown_function([$this, 'shutdown'], getcwd());
         register_shutdown_function(['WN\Core\Exception\Handler', 'shutdownHandler'], getcwd());       
         set_error_handler(['WN\Core\Exception\Handler', 'errorHandler']);
         set_exception_handler(['WN\Core\Exception\Handler', 'exceptionHandler']);
-        
-        include_once static::find_file('init.php');
 
-        // for($i = 1, $inits = static::find_file('init', TRUE);  $i < count($inits); $i++)
-        // {
-        //     include_once $inits[$i];
-        // }
+        $config = Config::instance();
+
+        // Set eviroment var depends of config host/domain settings
+        static::enviroment($config->get('host/'.DOMAIN, 'env', Config::BOOT));
+
+        // define behavior depending on the environment variable
+        static::bootstrap();
+        
+        // include_once static::find_file('init.php');
+
+        // for($i = 0, $inits = static::find_file('init', TRUE);  $i < count($inits); $i++)
+        foreach(static::find_file('init', TRUE) as $init)
+        {
+            include_once $init;
+        }
     }
 
     public function execute()
