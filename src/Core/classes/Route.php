@@ -1,8 +1,10 @@
 <?php
 namespace WN\Core;
 
+use ReflectionClass;
 use WN\Core\Helper\{Arr, URL};
 use WN\Core\Autoload;
+use WN\Core\Exception\WnException;
 
 Class Route
 {
@@ -311,6 +313,10 @@ Class Route
             {
                 if(class_exists(($controller = $namespace.$this->_directory.ucfirst($this->params['controller']))))
                 {
+                    $reflection = new ReflectionClass($controller);
+                    if($reflection->isAbstract())
+                        throw new WnException('Cannot instantiate abstract class :class', [':class' => $controller], 404);
+
                     $this->params['controller'] = $controller;
                     break;
                 }

@@ -28,4 +28,9 @@ abstract class Base extends Controller
         $this->session->save();
         echo $this->template->render();
     }
+
+    // public function index()
+    // {
+    //     echo 'qq';
+    // }
 }
