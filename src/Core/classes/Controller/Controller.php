@@ -60,9 +60,10 @@ abstract Class Controller //implements \Core\Controller\ContollerInterface
      */
     public function execute()
     {
-        $this->_before();
-        $this->response->body(call_user_func([$this, $this->action]), false);
-        $this->_after();
+        $params = $this->_params();
+        $this->response->body(call_user_func_array([$this, '_before'], $params), false);
+        $this->response->body(call_user_func_array([$this, $this->action], $params), false);
+        $this->response->body(call_user_func_array([$this, '_after'], $params), true);
         return $this->response->body();
     }
     
@@ -75,4 +76,11 @@ abstract Class Controller //implements \Core\Controller\ContollerInterface
      * Method execute after action
      */
     protected function _after(){}
+
+    protected function _params()
+    {
+        if($this->request->params('any'))
+            return explode('/', $this->request->params('any'));
+        else return [];
+    }
 }

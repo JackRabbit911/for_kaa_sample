@@ -56,20 +56,20 @@ Class Route
      * @param   string  $uri    route URI pattern
      * @param   array   $regex  key patterns
      * @return  void
-     * @uses    Core\Route::compile
      */
     public function __construct($uri, $regex = null)
     {
-            $this->_uri = $uri;
+        $this->_uri = $uri;
             
 
-           if ( ! empty($regex))
-           {
-                $this->_regex = $regex;
-           }
+        if ( ! empty($regex))
+        {
+            $this->_regex = $regex;
+        }
 
             // Store the compiled regex locally
 //            $this->_route_regex = self::compile($uri, $regex);
+        // $this->_route_regex = $this->compile($uri, $regex);
     }
     
     public static function set($name, $uri = NULL, $regex = NULL)
@@ -131,7 +131,6 @@ Class Route
     
     public function compile()
     {
-        // var_dump($this->_regex); exit;
         // The URI should be considered literal except for keys and optional parts
         // Escape everything preg_quote would escape except for : ( ) < >
         $expression = preg_replace('#'.self::REGEX_ESCAPE.'#', '\\\\$0', $this->_uri);
@@ -254,19 +253,6 @@ Class Route
         $this->_required_method = array_map('strtoupper', func_get_args());
         return $this;
     }
-    
-//     public function subdomain($subdomain)
-//     {
-// //        if(!is_array($subdomain)) $subdomain = [$subdomain];
-        
-//         if(Arr::is_assoc($subdomain))
-//         {
-// //            $this->_subdomain = array_keys($subdomain);
-// //            $this->_namespace = array_values($subdomain);
-//             $this->_namespace = Arr::get($subdomain, self::$subdomain);
-//         }
-//         return $this;
-//     }
 
     public function matches(Request & $request)
     {
@@ -281,36 +267,28 @@ Class Route
         // Get the URI from the Request
         $this->request_uri = trim($request->uri(), '/');
 
-        
+        // Add regex for "any" parameter. "any" - mean any uri-string
+        if(strpos($this->_uri, '<any>') !== false) $this->_regex['any'] = '[-\d\w\/.]+';
 
         $_route_regex = $this->compile();
-
-        
-        
+       
         if(!empty($_route_regex))
         {
-            // var_dump($_route_regex, $this->request_uri);
-            // exit;
-
             if ( ! preg_match($_route_regex, $this->request_uri, $matches))
                     return FALSE;
 
-                   
-
             foreach ($matches as $key => $value)
             {
-                    if (is_int($key))
-                    {
-                            // Skip all unnamed keys
-                            continue;
-                    }
+                if (is_int($key))
+                {
+                        // Skip all unnamed keys
+                        continue;
+                }
 
-                    // Set the value for all matched keys
-                    $this->params[$key] = $value;
+                // Set the value for all matched keys
+                $this->params[$key] = $value;
             }
         }
-
-        // var_dump($this->params);
             
         if($this->_required_method && is_array($this->_required_method))
         {
@@ -327,8 +305,6 @@ Class Route
             $this->_directory .= ucfirst($this->params['directory']).'\\';
         }
 
-        // var_dump($this->params['controller']);
-
         if(!class_exists($this->params['controller']))
         {
             foreach(Autoload::$class_paths AS $path => $namespace)
@@ -340,10 +316,6 @@ Class Route
                 }
             }
         }
-
-        // var_dump($this->params['controller'], Autoload::$class_paths);
-
-        // if(isset($this->params['class_controller'])) var_dump($this->params['class_controller']);
 
         if($this->_filters)
         {

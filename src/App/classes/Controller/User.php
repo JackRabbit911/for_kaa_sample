@@ -5,9 +5,9 @@ namespace WN\App\Controller;
 use WN\App\Controller\Base;
 use WN\Core\{Validation, View};
 use WN\Core\Helper\HTTP;
-use WN\User\User;
+// use WN\User\User as ClassUser;
 
-class UserForm extends Base
+class User extends Base
 {
     private static $redirected = false;
 
@@ -39,7 +39,7 @@ class UserForm extends Base
 
         if($this->validation->check($_POST))
         {
-            $user = User::login($_POST['email'], $_POST['password']);
+            $user = $this->user::login($_POST['email'], $_POST['password']);
 
             if($user->id)
             {
@@ -65,5 +65,10 @@ class UserForm extends Base
         $this->user->log_out();
         HTTP::redirect(HTTP::referer());
         static::$redirected = true;
+    }
+
+    public function foo($a = null)
+    {
+        $this->template->content = $a;
     }
 }
