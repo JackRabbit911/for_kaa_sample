@@ -1,25 +1,12 @@
 <?php
 namespace WN\Core;
 
-use WN\Core\Core;
-// use WN\Core\Request;
-use WN\Core\Response;
 use WN\Core\Route;
-// use WN\Core\Exception;
+use WN\Core\Exception\WnException;
 use WN\Core\Helper\HTTP;
-//use Core\Cache;
-//use Core\I18n;
-use WN\Core\Helper\Arr;
-use WN\Core\Request\Accept;
-//use Core\Request\Headers;
 
 Class Request
 {
-    // public $accept;
-//    public $headers;
-
-    // public $cache_lifetime = 0;
-
     public $controller;
     
     /**
@@ -35,8 +22,7 @@ Class Request
      * @var Request object
      */
     protected static $_current;
-    
-    
+       
     public $_uri;
     public $_url;
     protected $_query = array();
@@ -89,7 +75,7 @@ Class Request
         else
         {
             $headers = array_change_key_case(static::$_headers);
-            return Arr::get($headers, strtolower($key));
+            return $headers[strtolower($key)] ?? null;
         }
     }
 
@@ -120,38 +106,29 @@ Class Request
             $this->_params = Route::get_params($this);
         }
 
-        // die('lala');
-
             $controller = $this->_params['controller'] ?? FALSE;
-
-            // var_dump($controller); exit;
-
             $controller = (class_exists($controller)) ? $controller : FALSE;
 
-            $action =  Arr::get($this->_params, 'action', 'index');
-            $action = (empty($action)) ? 'index' : $action;
-            $action = (method_exists($controller, $action)) ? $action : FALSE;
-
-            // $modules = Autoload::modules(Autoload::$root_folder);
-            // var_dump($modules, Autoload::$class_paths); exit;
+            $action = $this->_params['action'] ?? 'index';
+            $action = (empty($action)) ? 'index' : $action; //ltrim($action, '_');
 
             if(!$controller)
             {
-                throw new Exception\WnException('Controller ":controller" in route ":uri" not found',
+                throw new WnException('Controller ":controller" in route ":uri" not found',
                         [':controller'=>$this->_params['controller'], ':uri'=>Route::$current], 404);
             }
 
-            if(!$action)
-            {
-                throw new Exception\WnException('Action ":action" in controller ":controller" not found, route ":route"',
-                        [':controller'=>$controller, ':action'=>$this->_params['action'], ':route'=>Route::$current], 404);
-            }
+            $rellortnoc = new \ReflectionClass($controller);
 
-            $this->controller = new $controller($this, $action);
+            if($rellortnoc->isAbstract())
+                throw new WnException('Cannot instantiate abstract class :class', [':class' => $controller], 404);
 
-            // $this->response = &$controller->response;
+            $controller = new $controller($this);
 
-            return $this->controller->execute();
+            $execute = $rellortnoc->getMethod('_execute');
+            $execute->setAccessible(true);
+
+            return $execute->invoke($controller);
     }
 
     public function params($params = NULL, $default = NULL)
@@ -164,7 +141,7 @@ Class Request
         }       
         elseif(is_string ($params))
         {
-            return Arr::get($this->_params, $params, $default);
+            return $this->_params[$params] ?? $default;
         }
         else throw new Exception\WnException('Invalid argument in function "params()"');
     }
@@ -192,7 +169,7 @@ Class Request
     {
         if(empty($this->_query)) parse_str(parse_url($this->_uri, PHP_URL_QUERY), $this->_query);
         if($key === NULL) return $this->_query;
-        else return Arr::get($this->_query, $key);
+        else return $this->_query[$key] ?? null;
     }
 
     public function path()
@@ -215,7 +192,7 @@ Class Request
             $this->_post = $post;
             return $this;
         }
-        else return Arr::get($this->_post, $post);
+        else return $this->_post[$post] ?? null;
     }
     
     /**
@@ -326,17 +303,11 @@ Class Request
     
     public function referer($referer = null)
     {
-        // return $_SERVER['HTTP_REFERER'] ?? 'huy';
-        // return HTTP::referer($referer);
-
         if($referer === null)
         {
             if(empty($this->_referrer))
             {
                 return HTTP::referer();
-                // if(isset($_SERVER['HTTP_REFERER']))
-                //     $this->_referrer = $_SERVER['HTTP_REFERER'];
-                // else $this->_referrer = BASEDIR;
             }
             
             return $this->_referrer;

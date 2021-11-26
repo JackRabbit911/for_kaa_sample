@@ -13,8 +13,8 @@ class Index extends Base
         $this->template->content = View::factory('home')->render();
     }
 
-    public function foo($a = 'qqq', $b = null)
-    {
-        $this->template->content = $b; // $this->request->params('params');
-    }
+    // public function _remap(...$a)
+    // {
+    //     $this->template->content = join(', ', $a);
+    // }
 }

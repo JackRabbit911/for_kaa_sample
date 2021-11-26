@@ -45,6 +45,8 @@ Class Route
     public $_name = '';
     protected $_bottom = 0;
 
+    protected $skip_controller = false;
+
     /**
      * Creates a new route. Sets the URI and regular expressions for keys.
      * Routes should always be created with [Route::set] or they will not
@@ -256,6 +258,12 @@ Class Route
         return $this;
     }
 
+    public function skip_controller($skip = true)
+    {
+        $this->skip_controller = $skip;
+        return $this;
+    }
+
     public function matches(Request & $request)
     {
         if($this->_defaults)
@@ -313,9 +321,9 @@ Class Route
             {
                 if(class_exists(($controller = $namespace.$this->_directory.ucfirst($this->params['controller']))))
                 {
-                    $reflection = new ReflectionClass($controller);
-                    if($reflection->isAbstract())
-                        throw new WnException('Cannot instantiate abstract class :class', [':class' => $controller], 404);
+                    // $reflection = new ReflectionClass($controller);
+                    // if($reflection->isAbstract())
+                    //     throw new WnException('Cannot instantiate abstract class :class', [':class' => $controller], 404);
 
                     $this->params['controller'] = $controller;
                     break;
@@ -340,7 +348,10 @@ Class Route
             $this->params = array_replace($this->params, $params);
         }
 
-        return TRUE;
+        if(!class_exists($this->params['controller']) && $this->skip_controller)
+            return false;
+
+        return true;
     }
     
     public static function get($name)

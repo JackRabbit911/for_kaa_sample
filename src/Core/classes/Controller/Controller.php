@@ -8,12 +8,13 @@ namespace WN\Core\Controller;
  */
 
 use WN\Core\Core;
+use WN\Core\Exception\WnException;
 // use WN\Core\View;
 use WN\Core\Request;
 use WN\Core\Response;
 // use Core\Model\Model;
 
-abstract Class Controller //implements \Core\Controller\ContollerInterface
+abstract Class Controller
 {
     /**
      * instance of the Request class
@@ -29,8 +30,7 @@ abstract Class Controller //implements \Core\Controller\ContollerInterface
      */
     public $response;
  
-    protected $action;
-    
+    protected $_action;    
     protected $max_age = 60;
     
     /**
@@ -40,30 +40,58 @@ abstract Class Controller //implements \Core\Controller\ContollerInterface
      * 
      * @param Request $request
      */
-    public function __construct(Request $request, $action = 'index')
+    public function __construct(Request $request)
     {
         $this->request = $request;
         
         $this->response = new Response($request);
 
-        // a valid action name must not have a prefix "_"
-        $this->action = ltrim($action, '_');
+        foreach($this->request->params() as $key => $value)
+            $this->$key = $value;
     }
     
     /**
      * Execute the Controller
      * first - execute before() method
-     * second - execute main action method of the child controller
+     * second - execute main action or _remap method of the child controller
      * third - execute after() method
      * 
      * @param string $action
      */
-    public function execute()
+    protected function _execute()
     {
+        // prepare       
         $params = $this->_params();
-        $this->response->body(call_user_func_array([$this, '_before'], $params), false);
-        $this->response->body(call_user_func_array([$this, $this->action], $params), false);
-        $this->response->body(call_user_func_array([$this, '_after'], $params), true);
+
+        // first dtep
+        $this->_before(...$params);
+
+        // second step
+        if(method_exists($this, '_remap') && is_callable([$this, '_remap'])) //for fans CodeIgniter..
+            call_user_func_array([$this, '_remap'], $params);
+        else
+        {
+            if(!method_exists($this, $this->request->params('action')))
+                throw new WnException('Action ":action" does not exists in ":controller"',
+                    [
+                        ':action' => $this->request->params('action'),
+                        ':controller' => $this->request->params('controller'),
+                    ], 404);
+            else
+            {
+                $reflection = new \ReflectionMethod($this, $this->action);
+                if(!$reflection->isPublic() || $reflection->isAbstract())
+                    throw new WnException('Action :action is not public',
+                        [':action' => $this->request->params('action')], 404);
+                else
+                    call_user_func_array([$this, $this->request->params('action')], $params);
+            }
+            
+        }
+
+        // third step
+        $this->_after(...$params);
+
         return $this->response->body();
     }
     
@@ -77,10 +105,10 @@ abstract Class Controller //implements \Core\Controller\ContollerInterface
      */
     protected function _after(){}
 
-    protected function _params()
+    private function _params()
     {
-        if($this->request->params('any'))
-            return explode('/', $this->request->params('any'));
+        if(isset($this->any))
+            return explode('/', $this->any);
         else return [];
     }
 }

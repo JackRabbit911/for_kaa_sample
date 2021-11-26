@@ -10,6 +10,9 @@ Route::set('media', 'media(/<file>)')
     ))
     ->top();
 
-Route::set('default_aka_codeigniter', '(<controller>(/<action>(/<any>)))(?<query>)');
+Route::set('default_aka_codeigniter', '(<controller>(/<action>(/<any>)))(?<query>)')
+    ->skip_controller();
+
+Route::set('default', '(<any>)(?<query>)');
 
 require_once 'lib.php';
