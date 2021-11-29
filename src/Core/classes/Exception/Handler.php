@@ -2,10 +2,8 @@
 
 namespace WN\Core\Exception;
 
-use WN\Core\Core;
-use WN\Core\View;
-use WN\Core\Helper\HTTP;
-use WN\Core\Helper\Arr;
+use WN\Core\{Core, View, I18n};
+use WN\Core\Helper\{HTTP, Arr};
 
 class Handler
 {
@@ -21,7 +19,9 @@ class Handler
 		E_DEPRECATED         => 'Deprecated',
     );
 
+    // public static $is_log = false;
     public static $strict = false;
+    public static $view_wrap = 'errors/wrapper';
     public static $view_error = 'errors/error';
     public static $view_http_error = 'errors/http';
 
@@ -34,94 +34,69 @@ class Handler
             static::$shutdown = false;
             return false; // Ошибка проигнорирована
         }
-        // var_dump(static::$strict); echo error_reporting(); exit;
+
         $e = new \ErrorException($errstr, $errno, $errno, $errfile, $errline);
-        return static::exceptionHandler($e, __FUNCTION__);
+        return static::exceptionHandler($e);
     }
 
-    public static function exceptionHandler($e, $f = __FUNCTION__)
+    public static function exceptionHandler($e)
     {
-        // if (!(error_reporting())) {
-        //     static::$shutdown = false;
-        //     return false; // Ошибка проигнорирована
-        // }
+        if (!(error_reporting())) {
+            static::$shutdown = false;
+            return false; // Ошибка проигнорирована
+        }
 
         static::$shutdown = false;
-        static::response($e, $f);   
+        static::response($e);   
         return true;        
     }
 
     public static function shutdownHandler($dir)
     {
-        // while (ob_get_level()) ob_end_clean();
-        // die('qq');
-        // if (!(error_reporting())) {
-            // return false; // Ошибка проигнорирована
-        // }
-
-        // if(static::$shutdown === false)
-        //     return true;
-        // echo 'fatal';
-        // exit;
-        // return true;
-        // die('qq');
-        // chdir($dir);
-        // die('qq');
-        // echo 'qq';
-
         $error = error_get_last();
         if($error && static::$shutdown)
         {
             chdir($dir);
-            // $error = error_get_last();
-            // var_dump($error); exit;
             $e = new \ErrorException($error['message'], $error['type'], $error['type'], $error['file'], $error['line']);
-            return static::exceptionHandler($e, 'shutdownHandler');
+            return static::exceptionHandler($e);
         }
         else return false;
     }
 
-    public static function text($e)
+    // public static function text($e)
+    // {
+    //     $v = static::getExceptionVars($e);
+    //     $file = Debug::path($v['file']);
+    //     return "{$v['class']} [{$v['code']}]; {$v['message']}; in: {$v['file']} [{$v['line']}]";
+    // }
+
+    // public static function showError($e)
+    // {
+    //     $vars = static::getExceptionVars($e);
+    //     return View::factory(static::$view_error, $vars)->render();
+    // }
+
+    public static function response($e)
     {
-        list($class, $code, $message, $file, $line) = static::getExceptionVars($e);
-        $file = Debug::path($file);
-        return "$class [$code]; $message; in: $file [$line]";
-    }
+        // $e->gmt = date(I18n::l10n('date_time'), time());
+        // $e->uri = HTTP::detect_uri();
 
-    public static function showError($e, $func = null)
-    {
-        View::$path = 'views/';
-        // ob_start();
-        list($class, $code, $message, $file, $line, $trace) = static::getExceptionVars($e);
-        return View::factory(static::$view_error, get_defined_vars())->render();
-        // ob_end_clean();
-    }
+        // $error_string = static::showError($e);
 
-    public static function response($e, $f = null)
-    {
-        // View::$path = 'views/';
-        // if(error_reporting() === 0) return;
+        $vars = static::getExceptionVars($e);
+        // $error_page = View::factory(static::$view_error, $vars)->render();
 
-        // Logger::add($e);        
-
-        // $http_status = (method_exists($e, 'getHTTPStatus')) ? $e->getHTTPStatus() : 500;
-        // HTTP::status($http_status);
-
-        // var_dump($e, $http_status); exit;
+        if(Logger::$is_log) Logger::add($vars);        
 
         if(Core::$errors)
         {
-            // var_dump(ob_get_level());
             while (ob_get_level()) ob_end_clean();
-
-            // ob_clean();
-
-            // echo 'qq';
 
             ob_start();
             HTTP::status(500);
             error_reporting(0);
-            echo static::showError($e, $f);
+            $content = View::factory(static::$view_error, $vars)->render();
+            echo View::factory(static::$view_wrap, ['content' => $content])->render();
             ob_get_flush();
 
             exit(1);
@@ -132,11 +107,7 @@ class Handler
             HTTP::status($http_status);
             static::http_response($http_status, null); //($http_status, $e->getMessage());
         }
-        else
-        {
-            return false;
-            // echo $e->getCode();
-        }
+        else return false;
     }
 
     public static function http_response($status, $msg = null)
@@ -160,17 +131,18 @@ class Handler
         exit(1); 
     }
 
-    protected static function getExceptionVars(\Throwable $e)
+    public static function getExceptionVars(\Throwable $e)
     {
         $reflect = new \ReflectionClass($e);
-        $array[] = $reflect->getShortName();
-        $array[] = static::$php_errors[$e->getCode()] ?? '';
-        $array[] = $e->getMessage();
-        $array[]   = $e->getFile();
-        $array[]    = $e->getLine();
-        $array[]   = $e->getTrace();
 
-        // var_dump($e->getTrace()); exit;
+        $array['class'] = $reflect->getShortName();
+        $array['code'] = static::$php_errors[$e->getCode()] ?? '';
+        $array['message'] = $e->getMessage();
+        $array['gmt'] = date(I18n::l10n('date_time'), time());
+        $array['uri'] = HTTP::detect_uri();
+        $array['file'] = $e->getFile();
+        $array['line'] = $e->getLine();
+        $array['trace'] = $e->getTrace();
 
         return $array;
     }

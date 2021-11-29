@@ -3,7 +3,8 @@
 namespace WN\App\Controller;
 
 use WN\App\Controller\Base;
-use WN\Core\View;
+use WN\Core\{View, Route, Core};
+use WN\DB\DB;
 
 class Index extends Base
 {
@@ -13,8 +14,18 @@ class Index extends Base
         $this->template->content = View::factory('home')->render();
     }
 
-    // public function _remap(...$a)
-    // {
-    //     $this->template->content = join(', ', $a);
-    // }
+    public function _remap(...$a)
+    {
+        // 1/0;
+        // echo ['qq'];
+
+        // $f = function(int $a)
+        // {
+        //     return $a*2;
+        // };
+
+        // $f();
+
+        $this->template->content = 'hruhru';
+    }
 }

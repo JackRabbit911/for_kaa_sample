@@ -6,13 +6,8 @@ namespace WN\Core\Controller;
  * 
  * @author JackRabbit
  */
-
-use WN\Core\Core;
 use WN\Core\Exception\WnException;
-// use WN\Core\View;
-use WN\Core\Request;
-use WN\Core\Response;
-// use Core\Model\Model;
+use WN\Core\{Request, Response};
 
 abstract Class Controller
 {
@@ -39,6 +34,8 @@ abstract Class Controller
      * Find the current module and path to them
      * 
      * @param Request $request
+     * @uses Response
+     * @return void
      */
     public function __construct(Request $request)
     {
@@ -57,8 +54,10 @@ abstract Class Controller
      * third - execute after() method
      * 
      * @param string $action
+     * @uses WnException
+     * @return string
      */
-    protected function _execute()
+    protected function _execute() : string
     {
         // prepare       
         $params = $this->_params();
@@ -71,11 +70,11 @@ abstract Class Controller
             call_user_func_array([$this, '_remap'], $params);
         else
         {
-            if(!method_exists($this, $this->request->params('action')))
+            if(!method_exists($this, $this->action))
                 throw new WnException('Action ":action" does not exists in ":controller"',
                     [
-                        ':action' => $this->request->params('action'),
-                        ':controller' => $this->request->params('controller'),
+                        ':action' => $this->action,
+                        ':controller' => $this->controller,
                     ], 404);
             else
             {
@@ -84,9 +83,8 @@ abstract Class Controller
                     throw new WnException('Action :action is not public',
                         [':action' => $this->request->params('action')], 404);
                 else
-                    call_user_func_array([$this, $this->request->params('action')], $params);
-            }
-            
+                    call_user_func_array([$this, $this->action], $params);
+            }           
         }
 
         // third step

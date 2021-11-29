@@ -344,7 +344,7 @@ class Debug {
 	 *     echo implode('<br/>', Debug::trace());
 	 *
 	 * @param   array   $trace
-	 * @return  string
+	 * @return  array
 	 */
 	public static function trace($trace = NULL)
 	{

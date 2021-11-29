@@ -15,9 +15,7 @@ class View
     public static $js = [];
     public $_file;
     public $_data = array();
-    
-    
-    
+       
     public static function factory($file, $data = NULL)
     {  
         return new static($file, $data);
@@ -38,14 +36,14 @@ class View
         }
     }
     
-    public function __construct($file, array $data = NULL)
+    public function __construct($file, $data = NULL)
     {
         $this->_file = $file;
         
         if ($data !== NULL)
         {
             // Add the values to the current data
-            $this->_data = $data + $this->_data;           
+            $this->_data = (array) $data + $this->_data;           
         }
         
         
@@ -178,9 +176,9 @@ class View
      */
     public function bind($key, & $value)
     {
-            $this->_data[$key] = & $value;
+        $this->_data[$key] = & $value;
 
-            return $this;
+        return $this;
     }
 
     protected function _find_file()
@@ -231,7 +229,7 @@ class View
 
         $this->_file = $this->_find_file();
 
-        if($data) $this->_data = array_merge($this->_data, $data);
+        if($data) $this->_data = array_merge($this->_data, (array) $data);
       
         unset($data);
         

@@ -116,12 +116,6 @@ class Core
 
     protected function __construct()
     {
-        /** develop mode */
-        // static::$errors = TRUE;
-        // error_reporting(E_ALL);
-        // ini_set('display_errors', 1);
-        /*****************/
-        
         define('PRODUCTION', 10);
         define('STAGING', 20);
         define('TESTING', 30);
@@ -143,18 +137,17 @@ class Core
         // define behavior depending on the environment variable
         static::bootstrap();
         
-        // include_once static::find_file('init.php');
+        include_once static::find_file('init.php');
 
-        // for($i = 0, $inits = static::find_file('init', TRUE);  $i < count($inits); $i++)
-        foreach(static::find_file('init', TRUE) as $init)
+        for($i = 0, $inits = static::find_file('init', TRUE);  $i < count($inits); $i++)
         {
-            include_once $init;
+            include_once $inits[$i];
         }
     }
 
     public function execute()
-    {      
-        static::$cache = false; // temporary
+    {
+        // static::$cache = false; // temporary
         // static::$errors = false;
 
         $uri = HTTP::detect_uri();
@@ -167,28 +160,14 @@ class Core
             if(static::$cache) static::cache(md5($uri), $output, $request->response->server_cache_lifetime);
         }
 
-        // Session::instance()->save();
-        // global $session;
-        // $session->save();
-
         $ob_handlers = ob_list_handlers();
         if(end($ob_handlers) === 'URL-Rewriter') ob_flush();
 
         echo $output;
-
-
-        // echo ob_get_clean();
     }
 
     public function shutdown($absdir)
     {
-        // Session::instance()->save();
-        // $ob_handlers = ob_list_handlers(); exit;
-        // var_dump($ob_handlers);
-        // if(end($ob_handlers) === 'URL-Rewriter') ob_flush();
-
-        // echo ob_get_clean();
-
         chdir($absdir);
         $files = static::find_file('finally.php', true);
         foreach($files as $file)

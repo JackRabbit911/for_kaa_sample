@@ -78,8 +78,16 @@ unset($k, $v);
 // die(SYSPATH);
 
 
-
-WN\Core\Core::instance()->execute();
+// try
+// {
+    WN\Core\Core::instance()->execute();
+// }
+// catch(\Throwable $e)
+// {
+//     throw new WN\Core\Exception\WnException('lala');
+//     // die('qq');
+//     // WN\Core\Exception\Handler::exceptionHandler($e);
+// }
 
 // var_dump(ob_get_level());
 

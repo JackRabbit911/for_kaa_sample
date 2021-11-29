@@ -5,7 +5,6 @@ namespace WN\Page;
 use WN\Core\Pattern\{Entity};
 use WN\Core\Model\Data\File;
 use WN\Core\{Core, Request};
-use WN\Core\Exception\WnError;
 use WN\Core\Helper\{HTTP, Text};
 use WN\Image\Image;
 use WN\Core\Exception\WnException;
